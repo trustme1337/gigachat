@@ -7,7 +7,7 @@ async def init_db():
     async with aiosqlite.connect(DB_LOCATION) as db:
         await db.execute('''CREATE TABLE IF NOT EXISTS users (
                                 id INTEGER PRIMARY KEY,
-                                queries_left INTEGER DEFAULT 5,
+                                queries_left INTEGER DEFAULT 20,
                                 is_premium INTEGER DEFAULT 0
                             )''')
         await db.commit()
@@ -15,7 +15,6 @@ async def init_db():
 
 async def add_user(tg_id: int):
     async with aiosqlite.connect(DB_LOCATION) as db:
-        # INSERT OR IGNORE тихо игнорирует ошибки, связанные с дублированием ключей.
         await db.execute('''INSERT OR IGNORE INTO users (id) VALUES (?)''',
                          (tg_id,))
         await db.commit()
@@ -29,7 +28,6 @@ async def get_user_data(tg_id: int):
 
 
 async def process_user_query(tg_id: int):
-    # Либо делаем -1 в оставшихся запросах, либо выкидываем ошибку, что запросы закончились
     user_data = await get_user_data(tg_id)
     if user_data[1] == 0 and user_data[2] == 0:
         raise Exception('Не осталось запросов')
