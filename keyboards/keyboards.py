@@ -1,22 +1,38 @@
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from GigaQueryEngine import prompts
 
 
 def start_menu():
     kb = InlineKeyboardBuilder()
-    kb.row(InlineKeyboardButton(text='Сгенерировать текст', callback_data='generate_text'))
-    kb.row(InlineKeyboardButton(text='Сгенерировать изображение', callback_data='generate_image'),
-           InlineKeyboardButton(text='Изменить параметры генерации', callback_data='generate_parameters'))
+    kb.row(InlineKeyboardButton(text='Сгенерировать текст по запросу', callback_data='generate_text_on_query'),
+            InlineKeyboardButton(text='Сгенерировать рандомный текст', callback_data='generate_random_text'))
+    kb.row(InlineKeyboardButton(text='Сгенерировать изображение по запросу', callback_data='generate_image_on_query'),
+           InlineKeyboardButton(text='Сгенерировать рандомное изображение', callback_data='generate_random_image'))
     kb.row(InlineKeyboardButton(text='Помощь',
                                 url='https://telegra.ph/'))
     kb.row(InlineKeyboardButton(text='Личный кабинет', callback_data='personal_cabinet'),
-           InlineKeyboardButton(text='Купить подписку', callback_data='buy_subscribe'))
+           InlineKeyboardButton(text='Купить подписку', callback_data='sub'))
     return kb.as_markup()
+
+
+def themes():
+    kb = InlineKeyboardBuilder()
+    themes_list = prompts.keys()
+    for theme in themes_list:
+        kb.add(InlineKeyboardButton(text=theme, callback_data=f'theme:{theme}'))
+    kb.adjust(2)
+    return kb.as_markup()
+
+
+def after_text():
+    kb = [[KeyboardButton(text='Главное меню')]]
+    return ReplyKeyboardMarkup(keyboard=kb, one_time_keyboard=True)
 
 
 def buy_sub():
     kb = InlineKeyboardBuilder()
     kb.row(InlineKeyboardButton(text='Купить подписку', callback_data='sub'))
-    kb.row(InlineKeyboardButton(text='Помощь',
-                                url='https://telegra.ph/'))
+    kb.row(InlineKeyboardButton(text='Помощь', url='https://telegra.ph/'))
     return kb.as_markup()
