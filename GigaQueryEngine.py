@@ -8,7 +8,7 @@ config: Config = load_config()
 default_message = 'Ты — бот-генератор текстов, напиши текст. Отвечай сразу текстом без вводных фраз и системных сообщений по типу "Вот ваш текст:".'
 
 prompts_text = {
-    '1': 'Напиши фантастический рассказ о будущем человечества через 1000 лет.',
+    'default': 'Напиши фантастический рассказ о будущем человечества через 1000 лет.',
     '2': 'Придумай мотивационное письмо для стартапера, который хочет покорить мир.',
     '3': 'Опиши магический мир, где все управляется звуками музыки.',
     '4': 'Создай руководство: Как научиться рисовать за 30 дней.',
@@ -20,6 +20,8 @@ prompts_text = {
     '10': 'Придумай историю успеха вымышленного героя, который стал миллионером.'
 }
 
+print(prompts_text.get('1'))
+
 gigachat = GigaChat(
     credentials=config.gigachat_token,
     scope="GIGACHAT_API_PERS",
@@ -29,8 +31,14 @@ gigachat = GigaChat(
 )
 
 
-def create_random_text(user_query: str = None) -> str:
-    prompt = default_message + (user_query if user_query else "")
+def create_random_text(user_query: str = 'default', is_query=False):
+    def check_user_query(user_query):
+        if is_query:
+            return user_query
+        else:
+            return prompts_text[user_query]
+
+    prompt = default_message + check_user_query(user_query)
     messages = [SystemMessage(content=prompt)]
 
     response = gigachat.invoke(messages)
