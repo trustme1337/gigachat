@@ -14,7 +14,6 @@ from GigaQueryEngine import create_random_text, prompts_text
 from aiogram.fsm.state import StatesGroup, State
 
 
-# Состояния
 class UserStates(StatesGroup):
     waiting_for_query = State()
 
@@ -23,7 +22,7 @@ user_router = Router()
 config: Config = load_config()
 
 
-async def send_text(callback_or_message, state: FSMContext, theme_text=None, is_query=False, template_text="Вот ваш текст:\n"):
+async def send_text(callback_or_message, state: FSMContext, theme_text=None, is_query=False):
     send_method = callback_or_message.message.answer if isinstance(callback_or_message,
                                                                    CallbackQuery) else callback_or_message.answer
     tg_id = callback_or_message.from_user.id if isinstance(callback_or_message,
@@ -37,10 +36,12 @@ async def send_text(callback_or_message, state: FSMContext, theme_text=None, is_
         return
 
     story = create_random_text(theme_text, is_query)
-    print(theme_text)
+    # print(theme_text)
     await state.update_data(text_type=theme_text)
 
-    await send_method(text=f"{template_text}{story}", reply_markup=keyboards.after_text())
+    await send_method(text=f"{story}", reply_markup=keyboards.after_text())
+
+    await state.clear()
 
 
 @user_router.message(CommandStart())
@@ -58,10 +59,16 @@ async def start_menu(message: Message, state: FSMContext):
     await state.clear()
 
 
+# ------------------
+# GENERATE_TEXT
+# ------------------
+
 @user_router.callback_query(F.data == 'generate_random_text')
 async def text_random(callback: CallbackQuery, state: FSMContext):
     prompt_text = random.choice(list(prompts_text.keys()))
+    # prompt_text = 'default'
     await send_text(callback, state, theme_text=prompt_text)
+
 
 @user_router.callback_query(F.data == 'generate_text_on_query')
 async def ask_for_query(callback: CallbackQuery, state: FSMContext):
@@ -73,7 +80,6 @@ async def ask_for_query(callback: CallbackQuery, state: FSMContext):
 async def generate_text_from_query(message: Message, state: FSMContext):
     user_query = message.text
 
-    # Проверяем, может ли пользователь выполнить запрос
     try:
         await database.process_user_query(message.from_user.id)
     except Exception:
@@ -84,11 +90,9 @@ async def generate_text_from_query(message: Message, state: FSMContext):
         await state.clear()
         return
 
-    # Генерируем текст по запросу
-    story = create_random_text(user_query, is_query=True)  # Используем введенный пользователем текст как тип запроса
+    story = create_random_text(user_query, is_query=True)
     await message.answer(f"Вот ваш текст:\n{story}", reply_markup=keyboards.after_text())
 
-    # Сбрасываем состояние
     await state.clear()
 
 
@@ -118,7 +122,6 @@ async def buy_sub(callback: CallbackQuery):
 
 @user_router.pre_checkout_query()
 async def process_pre_checkout_query(query: PreCheckoutQuery):
-    print('pre_checkout')
     await query.bot.answer_pre_checkout_query(pre_checkout_query_id=query.id, ok=True)
 
 
