@@ -2,6 +2,7 @@ import uuid
 import random
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery
 from aiogram.filters import CommandStart
 
@@ -11,20 +12,20 @@ from database import database
 
 from GigaQueryEngine import create_random_text, prompts_text
 
-from aiogram.fsm.state import StatesGroup, State
-
 
 class UserStates(StatesGroup):
     waiting_for_query = State()
-    waiting_for_image_query = State()
 
 
 user_router = Router()
 config: Config = load_config()
 
+
 async def send_text(callback_or_message, state: FSMContext, theme_text=None, is_query=False):
-    send_method = callback_or_message.message.answer if isinstance(callback_or_message, CallbackQuery) else callback_or_message.answer
-    tg_id = callback_or_message.from_user.id if isinstance(callback_or_message, CallbackQuery) else callback_or_message.from_user.id
+    send_method = callback_or_message.message.answer if isinstance(callback_or_message,
+                                                                   CallbackQuery) else callback_or_message.answer
+    tg_id = callback_or_message.from_user.id if isinstance(callback_or_message,
+                                                           CallbackQuery) else callback_or_message.from_user.id
 
     try:
         await database.process_user_query(tg_id)
@@ -34,12 +35,13 @@ async def send_text(callback_or_message, state: FSMContext, theme_text=None, is_
         await state.clear()
         return
 
-    story = create_random_text(theme_text, is_query)
+    text = create_random_text(theme_text, is_query)
     await state.update_data(text_type=theme_text)
 
-    await send_method(text=f"{story}", reply_markup=keyboards.after_text())
+    await send_method(text=f"{text}", reply_markup=keyboards.after_text())
 
     await state.clear()
+
 
 @user_router.message(CommandStart())
 @user_router.message(F.text == 'Главное меню')
@@ -108,7 +110,7 @@ async def buy_sub(callback: CallbackQuery):
         payload=payment_id,
         provider_token=config.payment_token,
         currency='RUB',
-        prices=[LabeledPrice(label='Оплата услуг', amount=29990)])
+        prices=[LabeledPrice(label='Оплата услуг', amount=19990)])
     await callback.message.answer(text='Номер тест-карты: 4000 0000 0000 0408, остальные данные случайные')
 
 
