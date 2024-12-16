@@ -16,33 +16,30 @@ from aiogram.fsm.state import StatesGroup, State
 
 class UserStates(StatesGroup):
     waiting_for_query = State()
+    waiting_for_image_query = State()
 
 
 user_router = Router()
 config: Config = load_config()
 
-
 async def send_text(callback_or_message, state: FSMContext, theme_text=None, is_query=False):
-    send_method = callback_or_message.message.answer if isinstance(callback_or_message,
-                                                                   CallbackQuery) else callback_or_message.answer
-    tg_id = callback_or_message.from_user.id if isinstance(callback_or_message,
-                                                           CallbackQuery) else callback_or_message.from_user.id
+    send_method = callback_or_message.message.answer if isinstance(callback_or_message, CallbackQuery) else callback_or_message.answer
+    tg_id = callback_or_message.from_user.id if isinstance(callback_or_message, CallbackQuery) else callback_or_message.from_user.id
 
     try:
         await database.process_user_query(tg_id)
     except Exception:
         await send_method(text='У вас закончились бесплатные генерации! Вам необходимо купить подписку!',
                           reply_markup=keyboards.buy_sub())
+        await state.clear()
         return
 
     story = create_random_text(theme_text, is_query)
-    # print(theme_text)
     await state.update_data(text_type=theme_text)
 
     await send_method(text=f"{story}", reply_markup=keyboards.after_text())
 
     await state.clear()
-
 
 @user_router.message(CommandStart())
 @user_router.message(F.text == 'Главное меню')
@@ -53,20 +50,15 @@ async def start_menu(message: Message, state: FSMContext):
     is_premium = user_data[2]
 
     await message.answer(
-        text=f'Привет, {message.from_user.first_name}! Я бот ГигаЧат, я могу генерировать текста и '
-             f'картинки.\nВыбери действие:',
+        text=f'Привет, {message.from_user.first_name}! Я бот ГигаЧат, я могу генерировать текста'
+             f'.\nВыбери действие:',
         reply_markup=keyboards.start_menu(is_premium=is_premium))
     await state.clear()
 
 
-# ------------------
-# GENERATE_TEXT
-# ------------------
-
 @user_router.callback_query(F.data == 'generate_random_text')
 async def text_random(callback: CallbackQuery, state: FSMContext):
     prompt_text = random.choice(list(prompts_text.keys()))
-    # prompt_text = 'default'
     await send_text(callback, state, theme_text=prompt_text)
 
 
