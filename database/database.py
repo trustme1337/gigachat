@@ -29,7 +29,7 @@ async def get_user_data(tg_id: int):
 
 async def process_user_query(tg_id: int):
     user_data = await get_user_data(tg_id)
-    if user_data[1] == 0 and user_data[2] == 0:
+    if user_data[1] == 0 and user_data[2] == -1:
         raise Exception('Не осталось запросов')
     elif user_data[2] == 0:
         async with aiosqlite.connect(DB_LOCATION) as db:

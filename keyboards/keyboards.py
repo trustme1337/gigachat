@@ -2,15 +2,12 @@ from aiogram.types import InlineKeyboardButton, KeyboardButton, ReplyKeyboardMar
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-def start_menu(is_premium: bool = False):
+def start_menu():
     kb = InlineKeyboardBuilder()
 
     kb.row(InlineKeyboardButton(text='По запросу', callback_data='generate_text_on_query'),
            InlineKeyboardButton(text='Случайно', callback_data='generate_random_text'))
     kb.row(InlineKeyboardButton(text='Помощь', url='https://telegra.ph/Bot-generator-teksta-12-16'))
-
-    if not is_premium:
-        kb.row(InlineKeyboardButton(text='Купить подписку', callback_data='sub'))
 
     kb.row(InlineKeyboardButton(text='Личный кабинет', callback_data='personal_cabinet'))
     return kb.as_markup()
@@ -21,8 +18,14 @@ def after_text():
     return ReplyKeyboardMarkup(keyboard=kb, one_time_keyboard=True, resize_keyboard=True)
 
 
-def buy_sub():
+def start_menu():
     kb = InlineKeyboardBuilder()
-    kb.row(InlineKeyboardButton(text='Купить подписку', callback_data='sub'))
-    kb.row(InlineKeyboardButton(text='Помощь', url='https://telegra.ph/'))
+
+    kb.row(InlineKeyboardButton(text='По запросу', callback_data='generate_text_on_query'),
+           InlineKeyboardButton(text='Случайно', callback_data='generate_random_text'))
+    kb.row(InlineKeyboardButton(text='Генерация изображения',
+                                callback_data='generate_image'))  # Добавляем кнопку для генерации изображения
+    kb.row(InlineKeyboardButton(text='Помощь', url='https://telegra.ph/Bot-generator-teksta-12-16'))
+    kb.row(InlineKeyboardButton(text='Личный кабинет', callback_data='personal_cabinet'))
+
     return kb.as_markup()
